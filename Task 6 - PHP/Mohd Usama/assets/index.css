@@ -33,6 +33,14 @@
   z-index: 4;
 }
 
+.dashed-border {
+  border-top: 1px dashed black;
+  border-bottom: 1px dashed black;
+}
+
+.emp-card{
+  z-index: 5;
+}
 .small-f {
   font-size: 10px;
 }

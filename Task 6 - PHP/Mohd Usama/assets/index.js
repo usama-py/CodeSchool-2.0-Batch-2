@@ -1096,6 +1096,11 @@ function createSideBarBody() {
         window.location.replace("")
       });
     }
+    if (sideBarList[i] == "Transactions") {
+      sideBarItem.on("click", function () {
+        window.location.replace("bills");
+      });
+    }
     list.append(sideBarItem);
   }
   col.append(list);

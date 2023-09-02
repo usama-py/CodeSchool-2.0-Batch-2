@@ -21,6 +21,7 @@ $earnings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $deductionResult = $stmt->execute([$earndeds_employee_id, $deduction]);
 $deductions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $combinedResults = [
+    "status" => true,
     "earnings" => $earnings,
     "deductions" => $deductions
 ];

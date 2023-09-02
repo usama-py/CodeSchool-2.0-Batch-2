@@ -47,6 +47,18 @@ CREATE TABLE EarnDedsCategories (
   earndeds_category_name VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE BankIFSCCodes (
+  bank_ifsc_code_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  ifsc_code VARCHAR(12) NOT NULL,
+  bank_branch VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE EmployeeBankDetails (
+  emp_BankDetails_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  bank_AC_No VARCHAR(20) NOT NULL,
+  bank_ifsc INT NOT NULL REFERENCES BankIFSCCodes(bank_ifsc_code_id),
+);
+
 CREATE TABLE Employees (
   employee_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   employee_department_id INT REFERENCES Departments(department_id) NOT NULL,
@@ -55,6 +67,30 @@ CREATE TABLE Employees (
   status BOOLEAN DEFAULT true,
   scale_type VARCHAR(20)
 );
+
+CREATE TABLE Bills (
+  bill_pk INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  bill_id INT REFERENCES Departments(department_id) NOT NULL,
+  bill_month INT NOT NULL CHECK (bill_month >= 1 AND bill_month <= 12),
+  bill_year INT NOT NULL CHECK (bill_year >= 2023),
+  total_earnings INT NOT NULL,
+  total_deductions INT NOT NULL,
+  net_amount INT NOT NULL
+);
+
+CREATE TABLE BillBeneficiaries (
+  bill_beneficiary_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  bill_pk INT REFERENCES Bills(bill_pk) NOT NULL,
+  employee_id INT REFERENCES Employees(employee_id) NOT NULL,
+  amount INT NOT NULL
+);
+
+CREATE TABLE billFiles (
+  id serial PRIMARY KEY,
+  bill_fk INT REFERENCES Bills(bill_pk) NOT NULL,
+  file_name varchar(100) NOT NULL,
+  file_path varchar(100) NOT NULL
+)
 
 INSERT INTO Departments (department_name) VALUES
   ('POLICE'),
@@ -89,9 +125,33 @@ VALUES
 
 ALTER TABLE Employees
 ADD COLUMN cader VARCHAR(20);
+
+ALTER TABLE employees
+ADD COLUMN emp_BankDetails_id INT REFERENCES EmployeeBankDetails(emp_BankDetails_id);
+
+ALTER TABLE bills
+ADD COLUMN bill_upload_file VARCHAR(255);
+
+ALTER TABLE bills
+ADD COLUMN bill_pdf VARCHAR(255);
+
 UPDATE Employees
 SET cader = CASE WHEN random() < 0.5 THEN 'gazetted' ELSE 'non-gazetted' END
 WHERE employee_id IN (SELECT employee_id FROM Employees ORDER BY random() LIMIT 20);
+
+DO $$
+DECLARE
+    emp_id INT;
+    bank_details_id INT;
+BEGIN
+    FOR emp_id IN 1..20 LOOP
+        bank_details_id := emp_id;
+        UPDATE Employees
+        SET emp_BankDetails_id = bank_details_id
+        WHERE employee_id = emp_id;
+    END LOOP;
+END $$;
+
 
 CREATE TABLE EarnDeds (
   earndeds_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -259,3 +319,38 @@ VALUES
   (18, 'Deduction', 8, 2500),
   (19, 'Deduction', 8, 1600),
   (20, 'Deduction', 8, 2000);
+
+INSERT INTO BankIFSCCodes (ifsc_code, bank_branch) VALUES
+  ('SBIN0000123', 'Mumbai Main Branch'),
+  ('HDFC0004567', 'Delhi Rajouri Garden Branch'),
+  ('ICIC0007890', 'Bangalore MG Road Branch'),
+  ('PNB0012345', 'Kolkata Park Street Branch'),
+  ('AXIS0005678', 'Chennai T Nagar Branch'),
+  ('BOI0023456', 'Pune Camp Branch'),
+  ('IDBI0008901', 'Hyderabad Jubilee Hills Branch'),
+  ('CBI0034567', 'Ahmedabad Navrangpura Branch'),
+  ('UBIN0090123', 'Jaipur C Scheme Branch'),
+  ('KOTAK0078901', 'Gurgaon Sector 14 Branch');
+
+INSERT INTO EmployeeBankDetails (bank_AC_No, bank_ifsc, amount_to_be_payed) VALUES
+  ('123456789012', 1, 50000),
+  ('987654321012', 2, 45000),
+  ('345678901234', 3, 55000),
+  ('876543210123', 4, 48000),
+  ('234567890123', 5, 52000),
+  ('654321098765', 6, 51000),
+  ('789012345678', 7, 47000),
+  ('543210987654', 8, 49000),
+  ('890123456789', 9, 60000),
+  ('432109876543', 10, 47000),
+  ('678901234567', 1, 58000),
+  ('210987654321', 2, 52000),
+  ('876543210987', 3, 54000),
+  ('543210987654', 4, 46000),
+  ('234567890123', 5, 57000),
+  ('987654321012', 6, 53000),
+  ('123456789012', 7, 49000),
+  ('654321098765', 8, 51000),
+  ('345678901234', 9, 62000),
+  ('890123456789', 10, 48000);
+
